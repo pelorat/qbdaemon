@@ -1,0 +1,5 @@
+./qbdaemon
+qbdaemon.exe
+launch.json
+qbd.conf
+.vscode
