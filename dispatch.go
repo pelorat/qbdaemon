@@ -118,6 +118,26 @@ func (d *Dispatcher) QueueAction(a interface{}) {
 	d.actions <- a
 }
 
+func setPermissions(path string, cfg *config) error {
+	var errno error
+	if cfg.Permissions != nil {
+		errno = filepath.Walk(path, func(name string, info os.FileInfo, err error) error {
+			if err == nil {
+				err = os.Chown(name, cfg.Permissions.UID, cfg.Permissions.GID)
+				if err != nil {
+					return err
+				}
+				err = os.Chmod(name, os.FileMode(cfg.Permissions.Mode))
+				if err != nil {
+					return err
+				}
+			}
+			return err
+		})
+	}
+	return errno
+}
+
 func (d *Dispatcher) workerUnpack(ctx context.Context, w uint, jobs <-chan TorrentJob) {
 	d.waitGroupEnter()
 	defer d.waitGroupLeave()
@@ -189,6 +209,12 @@ func (d *Dispatcher) workerUnpack(ctx context.Context, w uint, jobs <-chan Torre
 									w, target.String(), err.Error())
 							}
 						}
+
+						err = setPermissions(destPath, d.cfg)
+						if err != nil {
+							log.Printf("[Unpack/%d] Error setting file permissions; %s", w, err.Error())
+						}
+
 						logFile.Close()
 					}
 
@@ -228,10 +254,25 @@ func (d *Dispatcher) workerCheck(ctx context.Context, w uint, jobs <-chan Torren
 			// Scan the path for targets
 			targets, err := d.up.ScanPath(ctx, scanPath)
 			if err == context.Canceled {
-				// When canceled it means we just exit because we're shutting down
 				return
-			} else if err != nil {
-				// Some other error occurred, log the issue and set the category to error
+			} else if err == nil {
+				err = setPermissions(scanPath, d.cfg)
+				if err == nil {
+					if len(targets) == 0 {
+						d.actions <- SetCategory{
+							hash:     torrent.Hash,
+							category: d.cfg.Categories.NoArchive,
+						}
+					} else {
+						d.actions <- SetCategory{
+							hash:     torrent.Hash,
+							category: d.cfg.Categories.Default,
+						}
+					}
+				}
+			}
+
+			if err != nil {
 				log.Printf("[Check/%d] Error scanning path for torrent %s (%s); %s",
 					w, torrent.Hash, torrent.Name, err.Error())
 
@@ -239,19 +280,8 @@ func (d *Dispatcher) workerCheck(ctx context.Context, w uint, jobs <-chan Torren
 					hash:     torrent.Hash,
 					category: d.cfg.Categories.Error,
 				}
-			} else {
-				if len(targets) == 0 {
-					d.actions <- SetCategory{
-						hash:     torrent.Hash,
-						category: d.cfg.Categories.NoArchive,
-					}
-				} else {
-					d.actions <- SetCategory{
-						hash:     torrent.Hash,
-						category: d.cfg.Categories.Default,
-					}
-				}
 			}
+
 			d.tm.JobDone(torrent.Hash)
 		case <-ctx.Done():
 			return

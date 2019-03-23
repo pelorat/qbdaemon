@@ -11,6 +11,12 @@ import (
 
 const configFile string = "qbd.conf"
 
+type permissions struct {
+	Mode uint32 `yaml:"mode"`
+	UID  int    `yaml:"uid"`
+	GID  int    `yaml:"gid"`
+}
+
 type polling struct {
 	Timeout uint `yaml:"timeout"`
 	Delay   uint `yaml:"delay"`
@@ -31,17 +37,18 @@ type categories struct {
 }
 
 type config struct {
-	Server     string     `yaml:"server"`
-	Port       uint16     `yaml:"port"`
-	Username   string     `yaml:"username"`
-	Password   string     `yaml:"password"`
-	DestPath   string     `yaml:"destpath"`
-	LogPath    string     `yaml:"logpath,omitempty"`
-	TempPath   string     `yaml:"temppath,omitempty"`
-	Polling    polling    `yaml:"polling"`
-	Workers    workers    `yaml:"workers"`
-	Categories categories `yaml:"categories"`
-	path       string
+	Server      string       `yaml:"server"`
+	Port        uint16       `yaml:"port"`
+	Username    string       `yaml:"username"`
+	Password    string       `yaml:"password"`
+	DestPath    string       `yaml:"destpath"`
+	LogPath     string       `yaml:"logpath,omitempty"`
+	TempPath    string       `yaml:"temppath,omitempty"`
+	Permissions *permissions `yaml:"permissions,omitempty"`
+	Polling     polling      `yaml:"polling"`
+	Workers     workers      `yaml:"workers"`
+	Categories  categories   `yaml:"categories"`
+	path        string
 }
 
 func newConfig() *config {
