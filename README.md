@@ -90,7 +90,7 @@ categories:
 
 * `unpack` and `check` controls how many background threads are assigned to each task. The `check` task is a quick task that scans completed torrents for archives, and it also sets the file permissions. The `unpack` task handles unpacking and does the heavy lifting. A value of `1` will run unpacking jobs sequentially which is most likely what you want in order to avoid disk trashing.
 
-* `categories` configures the category keywords used from the qBittorrent web UI for communicating with qbDaemon.
+* `categories` configures the category keywords used from the qBittorrent web UI for communicating with qbDaemon. The qbDaemon process will attempt to register these categories with qBittorrent automatically when it starts up.
 
 Usage
 -----
