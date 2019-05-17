@@ -215,14 +215,7 @@ func (tm *TorrentQueue) Update(torrents []*Torrent) {
 	for k, d := range tm.data {
 		if d.time.Before(now) {
 			d.status = tsRemoved
-
-			// TODO: this should possibly be removed since communication
-			// TODO: with the queue is done via torrent hash and not the
-			// TODO: torrent item pointer.
-			if time.Since(now) > 60*time.Minute {
-				delete(tm.data, k)
-			}
-
+			delete(tm.data, k)
 			if tm.removed != nil {
 				tm.removed(d.torrent)
 			}
