@@ -1,4 +1,4 @@
-package unpacker
+package main
 
 import (
 	"context"

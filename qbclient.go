@@ -1,4 +1,4 @@
-package qbc
+package main
 
 import (
 	"context"
@@ -123,7 +123,7 @@ var ErrCategoryBad = errors.New("category name is invalid")
 var ErrCategoryUnknown = errors.New("category name does not exist")
 
 // NewClient ...
-func NewClient(host string, port uint16, username, password string) *QbClient {
+func NewTorrentClient(host string, port uint16, username, password string) *QbClient {
 	return &QbClient{
 		host:     host,
 		port:     port,

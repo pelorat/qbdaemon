@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"qbdaemon/unpacker"
 )
 
 func setOverrides(config *config, dest string, temp string) {
@@ -47,7 +46,7 @@ func main() {
 	flag.Parse()
 
 	if len(*testPath) > 0 {
-		up, err := unpacker.New()
+		up, err := NewUnpacker()
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -103,7 +102,7 @@ func main() {
 	signal.Notify(sigs, os.Interrupt)
 
 	// Create the unpacker
-	up, err := unpacker.New()
+	up, err := NewUnpacker()
 	if err != nil {
 		log.Fatalln(err)
 	}

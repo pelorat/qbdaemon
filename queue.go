@@ -1,7 +1,6 @@
 package main
 
 import (
-	qbc "qbdaemon/qbclient"
 	"sync"
 	"time"
 )
@@ -15,7 +14,7 @@ const (
 )
 
 type mapItem struct {
-	torrent *qbc.Torrent
+	torrent *Torrent
 	status  queueStatus
 	time    time.Time
 }
@@ -25,27 +24,27 @@ type TorrentQueue struct {
 	data      map[string]*mapItem
 	mutex     sync.Mutex
 	config    *config
-	added     func(*qbc.Torrent)
-	updated   func(*qbc.Torrent)
-	removed   func(*qbc.Torrent)
-	queuefull func(*qbc.Torrent, TorrentJob)
+	added     func(*Torrent)
+	updated   func(*Torrent)
+	removed   func(*Torrent)
+	queuefull func(*Torrent, TorrentJob)
 	queueA    chan TorrentJob
 	queueB    chan TorrentJob
 }
 
 // TorrentJob interface declaration
 type TorrentJob interface {
-	GetTorrent() *qbc.Torrent
+	GetTorrent() *Torrent
 }
 
 // CheckTorrent is a job type that checks a torrent for unpackable archives
 type CheckTorrent struct {
-	torrent *qbc.Torrent
+	torrent *Torrent
 }
 
 // UnpackTorrent is a job type that tries to unpack torrent archives
 type UnpackTorrent struct {
-	torrent *qbc.Torrent
+	torrent *Torrent
 }
 
 func (mi *mapItem) IsQueued() bool {
@@ -53,28 +52,28 @@ func (mi *mapItem) IsQueued() bool {
 }
 
 // GetTorrent returns the enclosed torrent pointer
-func (j *CheckTorrent) GetTorrent() *qbc.Torrent {
+func (j *CheckTorrent) GetTorrent() *Torrent {
 	return j.torrent
 }
 
 // GetTorrent returns the enclosed torrent pointer
-func (j *UnpackTorrent) GetTorrent() *qbc.Torrent {
+func (j *UnpackTorrent) GetTorrent() *Torrent {
 	return j.torrent
 }
 
-func (tm *TorrentQueue) setAddEvent(cb func(*qbc.Torrent)) {
+func (tm *TorrentQueue) setAddEvent(cb func(*Torrent)) {
 	tm.added = cb
 }
 
-func (tm *TorrentQueue) setUpdateEvent(cb func(*qbc.Torrent)) {
+func (tm *TorrentQueue) setUpdateEvent(cb func(*Torrent)) {
 	tm.updated = cb
 }
 
-func (tm *TorrentQueue) setRemoveEvent(cb func(*qbc.Torrent)) {
+func (tm *TorrentQueue) setRemoveEvent(cb func(*Torrent)) {
 	tm.removed = cb
 }
 
-func (tm *TorrentQueue) setQueueFullEvent(cb func(*qbc.Torrent, TorrentJob)) {
+func (tm *TorrentQueue) setQueueFullEvent(cb func(*Torrent, TorrentJob)) {
 	tm.queuefull = cb
 }
 
@@ -107,7 +106,7 @@ func (tm *TorrentQueue) Remove(hash string) {
 }
 
 // Get torrent data given a hash
-func (tm *TorrentQueue) Get(hash string) *qbc.Torrent {
+func (tm *TorrentQueue) Get(hash string) *Torrent {
 	tm.Lock()
 	defer tm.Unlock()
 	if t, ok := tm.data[hash]; ok {
@@ -180,7 +179,7 @@ func (tm *TorrentQueue) enqeueJobs() {
 }
 
 // Update the torrent queue with a new torrent list
-func (tm *TorrentQueue) Update(torrents []*qbc.Torrent) {
+func (tm *TorrentQueue) Update(torrents []*Torrent) {
 	tm.Lock()
 	defer tm.Unlock()
 

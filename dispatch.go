@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	qbc "qbdaemon/qbclient"
-	"qbdaemon/unpacker"
 	"sync"
 	"time"
 )
@@ -34,7 +32,7 @@ type DeQueue struct {
 type Dispatcher struct {
 	wg       *sync.WaitGroup
 	cfg      *config
-	up       *unpacker.Unpacker
+	up       *Unpacker
 	result   chan error
 	timer    *time.Timer
 	timeouts int
@@ -44,7 +42,7 @@ type Dispatcher struct {
 }
 
 // NewDispatcher ...
-func NewDispatcher(cfg *config, up *unpacker.Unpacker) *Dispatcher {
+func NewDispatcher(cfg *config, up *Unpacker) *Dispatcher {
 	return &Dispatcher{
 		wg:      &sync.WaitGroup{},
 		cfg:     cfg,
@@ -299,16 +297,16 @@ func (d Dispatcher) Run(ctx context.Context) {
 	defer d.stopTimer()
 
 	// Create a new torrent API client
-	tc := qbc.NewClient(d.cfg.Server, d.cfg.Port, d.cfg.Username, d.cfg.Password)
+	tc := NewTorrentClient(d.cfg.Server, d.cfg.Port, d.cfg.Username, d.cfg.Password)
 
 	// Setup logging callbacks
-	d.tm.setAddEvent(func(t *qbc.Torrent) {
+	d.tm.setAddEvent(func(t *Torrent) {
 		log.Printf("[Queue] Added torrent %s (%s)\n", t.Hash, t.Name)
 	})
-	d.tm.setRemoveEvent(func(t *qbc.Torrent) {
+	d.tm.setRemoveEvent(func(t *Torrent) {
 		log.Printf("[Queue] Removed torrent %s (%s)\n", t.Hash, t.Name)
 	})
-	d.tm.setQueueFullEvent(func(t *qbc.Torrent, j TorrentJob) {
+	d.tm.setQueueFullEvent(func(t *Torrent, j TorrentJob) {
 		log.Printf("[Queue] Job queue full; failed to enqueue torrent %s (%s) for job %T\n", t.Hash, t.Name, j)
 	})
 
@@ -355,7 +353,7 @@ func (d Dispatcher) Run(ctx context.Context) {
 					action, _ := actionType.(AddCategory)
 					err = tc.AddCategory(ctx, action.category)
 					switch err {
-					case qbc.ErrCategoryBad:
+					case ErrCategoryBad:
 						log.Printf("[Manager] Failed to add category %s (does it already exist?)\n", action.category)
 						err = nil
 					case nil:
@@ -386,13 +384,13 @@ func (d Dispatcher) Run(ctx context.Context) {
 
 			if err != nil {
 				switch err {
-				case qbc.ErrLogin:
+				case ErrLogin:
 					fallthrough
-				case qbc.ErrBanned:
+				case ErrBanned:
 					fallthrough
-				case qbc.ErrCategoryEmpty:
+				case ErrCategoryEmpty:
 					fallthrough
-				case qbc.ErrCategoryBad:
+				case ErrCategoryBad:
 					fallthrough
 				default:
 					fallthrough

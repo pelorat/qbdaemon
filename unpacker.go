@@ -1,4 +1,4 @@
-package unpacker
+package main
 
 import (
 	"context"
@@ -82,8 +82,8 @@ type Unpacker struct {
 	Formats []Format
 }
 
-// New ...
-func New() (*Unpacker, error) {
+// NewUnpacker ...
+func NewUnpacker() (*Unpacker, error) {
 	u := &Unpacker{}
 	for _, uc := range getFormats() {
 		if uc.Installed() {
