@@ -12,7 +12,8 @@ import (
 const configFile string = "qbd.conf"
 
 type permissions struct {
-	Mode uint32 `yaml:"mode"`
+	Dir  uint32 `yaml:"dir"`
+	File uint32 `yaml:"file"`
 	UID  int    `yaml:"uid"`
 	GID  int    `yaml:"gid"`
 }

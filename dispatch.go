@@ -125,7 +125,13 @@ func setPermissions(path string, cfg *config) error {
 				if err != nil {
 					return err
 				}
-				err = os.Chmod(name, os.FileMode(cfg.Permissions.Mode))
+
+				if info.IsDir() {
+					err = os.Chmod(name, os.FileMode(cfg.Permissions.Dir))
+				} else {
+					err = os.Chmod(name, os.FileMode(cfg.Permissions.File))
+				}
+
 				if err != nil {
 					return err
 				}
